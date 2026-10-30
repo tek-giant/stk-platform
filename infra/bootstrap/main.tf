@@ -1,3 +1,4 @@
+# Bootstrap: remote state backend shared by all Stock Platform environments
 terraform {
   required_version = ">= 1.6"
   required_providers {
