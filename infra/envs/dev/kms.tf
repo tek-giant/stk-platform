@@ -1,7 +1,10 @@
 data "aws_caller_identity" "current" {}
 
-# Key policy: only the account itself, so IAM policies decide who may use the key.
-# Services such as RDS, CloudTrail or CloudWatch will be added to it when they need it.
+locals {
+  trail_name = "stk-dev-trail"
+  trail_arn  = "arn:aws:cloudtrail:eu-west-2:${data.aws_caller_identity.current.account_id}:trail/${local.trail_name}"
+}
+
 data "aws_iam_policy_document" "project_key" {
   statement {
     sid       = "EnableIamPolicies"
@@ -11,6 +14,29 @@ data "aws_iam_policy_document" "project_key" {
     principals {
       type        = "AWS"
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+  }
+
+  statement {
+    sid       = "AllowCloudTrailToEncryptLogs"
+    actions   = ["kms:GenerateDataKey*", "kms:DescribeKey"]
+    resources = ["*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceArn"
+      values   = [local.trail_arn]
+    }
+
+    condition {
+      test     = "StringLike"
+      variable = "kms:EncryptionContext:aws:cloudtrail:arn"
+      values   = ["arn:aws:cloudtrail:*:${data.aws_caller_identity.current.account_id}:trail/*"]
     }
   }
 }
