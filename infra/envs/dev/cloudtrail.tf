@@ -1,3 +1,4 @@
+# CloudTrail: audit log of AWS activity, encrypted with the project key
 resource "aws_s3_bucket" "cloudtrail" {
   bucket = "stk-cloudtrail-${data.aws_caller_identity.current.account_id}"
 
