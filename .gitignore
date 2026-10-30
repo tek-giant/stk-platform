@@ -30,3 +30,6 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+
+# Maven
+target/
