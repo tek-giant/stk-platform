@@ -31,6 +31,15 @@ resource "aws_ecs_task_definition" "stock_api" {
       protocol      = "tcp"
     }]
 
+    environment = [
+      { name = "DB_URL", value = "jdbc:postgresql://${local.db_endpoint}:5432/stock?sslmode=require" },
+      { name = "DB_USER", value = "stk_admin" },
+    ]
+
+    secrets = [
+      { name = "DB_PASSWORD", valueFrom = "${local.db_secret_arn}:password::" },
+    ]
+
     logConfiguration = {
       logDriver = "awslogs"
       options = {
@@ -109,5 +118,9 @@ resource "aws_ecs_service" "stock_api" {
     container_port   = 8080
   }
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [
+    aws_lb_listener.http,
+    aws_iam_role_policy.execution_read_db_secret,
+    aws_vpc_security_group_egress_rule.app_to_db,
+  ]
 }
