@@ -25,7 +25,13 @@ resource "aws_launch_template" "web" {
     name = aws_iam_instance_profile.web.name
   }
 
-  vpc_security_group_ids = [aws_security_group.web.id]
+  # Never give the web servers a public IP: they sit in private subnets behind the load balancer.
+  network_interfaces {
+    device_index                = 0
+    associate_public_ip_address = false
+    delete_on_termination       = true
+    security_groups             = [aws_security_group.web.id]
+  }
 
   metadata_options {
     http_endpoint               = "enabled"
