@@ -1,33 +1,34 @@
 package com.stk.stock;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
 
-    private final Map<Long, Order> orders = new ConcurrentHashMap<>();
-    private final AtomicLong ids = new AtomicLong();
+    private final OrderRepository repository;
+
+    public OrderService(OrderRepository repository) {
+        this.repository = repository;
+    }
 
     public List<Order> list() {
-        return orders.values().stream()
-                .sorted(Comparator.comparingLong(Order::id))
+        return repository.findAll(Sort.by("id")).stream()
+                .map(OrderService::toOrder)
                 .toList();
     }
 
     public Optional<Order> find(long id) {
-        return Optional.ofNullable(orders.get(id));
+        return repository.findById(id).map(OrderService::toOrder);
     }
 
     public Order create(String item, int quantity) {
-        long id = ids.incrementAndGet();
-        Order order = new Order(id, item, quantity, "NEW");
-        orders.put(id, order);
-        return order;
+        return toOrder(repository.save(new OrderEntity(item, quantity, "NEW")));
+    }
+
+    private static Order toOrder(OrderEntity entity) {
+        return new Order(entity.getId(), entity.getItem(), entity.getQuantity(), entity.getStatus());
     }
 }
