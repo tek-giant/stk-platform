@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true"></span>
+        <div>
+          <h1>Stock Platform</h1>
+          <p>Orders and inventory at a glance</p>
+        </div>
+      </div>
+      <div id="status" class="status status-checking" role="status">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="status-text">Checking API</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="Summary">
+      <article class="card stat">
+        <span class="stat-label">Orders</span>
+        <strong id="stat-orders" data-value="0">0</strong>
+      </article>
+      <article class="card stat">
+        <span class="stat-label">Units ordered</span>
+        <strong id="stat-units" data-value="0">0</strong>
+      </article>
+      <article class="card stat">
+        <span class="stat-label">Distinct items</span>
+        <strong id="stat-items" data-value="0">0</strong>
+      </article>
+    </section>
+
+    <section class="layout">
+      <form id="order-form" class="card">
+        <h2>New order</h2>
+        <label for="item">Item</label>
+        <input id="item" name="item" required maxlength="100" autocomplete="off" placeholder="e.g. Mechanical keyboard">
+        <label for="quantity">Quantity</label>
+        <div class="stepper">
+          <button type="button" class="step" data-step="-1" aria-label="Decrease quantity">&minus;</button>
+          <input id="quantity" name="quantity" type="number" min="1" value="1" required>
+          <button type="button" class="step" data-step="1" aria-label="Increase quantity">+</button>
+        </div>
+        <button id="submit" type="submit" class="primary">Create order</button>
+      </form>
+
+      <section class="card">
+        <div class="list-head">
+          <h2>Orders</h2>
+          <input id="search" type="search" placeholder="Search items" aria-label="Search items" autocomplete="off">
+        </div>
+
+        <div id="skeleton" class="skeleton" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+
+        <div id="table-wrap" class="table-wrap" hidden>
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Item</th><th>Qty</th><th>Status</th></tr>
+            </thead>
+            <tbody id="orders"></tbody>
+          </table>
+        </div>
+
+        <div id="empty" class="empty" hidden>
+          <div class="empty-art" aria-hidden="true"><span></span><span></span></div>
+          <p id="empty-text">No orders yet.</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">This page needs JavaScript to load orders.</p></noscript>
+  <script src="app.js"></script>
+</body>
+</html>
