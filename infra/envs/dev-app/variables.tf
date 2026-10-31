@@ -1,7 +1,7 @@
 variable "image_tag" {
   description = "Version of the stock-api image to run"
   type        = string
-  default     = "0.1.0"
+  default     = "0.2.0"
 }
 
 variable "desired_count" {
