@@ -199,7 +199,13 @@ els.search.addEventListener("input", () => {
 });
 
 setInterval(() => {
-  if (!demo && !document.hidden) loadOrders();
+  if (!demo && !document.hidden) refresh();
 }, 10000);
 
-loadOrders();
+
+// Fire and forget, but never let an unexpected error go unreported.
+function refresh() {
+  loadOrders().catch((error) => toast("Unexpected error: " + error.message, "error"));
+}
+
+refresh();
