@@ -1,3 +1,9 @@
+# The SSO administrator role allowed to assume the CI roles. It is pinned, not looked up,
+# so a plan gives the same answer on the laptop and in Jenkins.
+locals {
+  sso_admin_role_arn = "arn:aws:iam::743978812281:role/aws-reserved/sso.amazonaws.com/eu-west-2/AWSReservedSSO_AdministratorAccess_6c92655dbb526cf2"
+}
+
 # The role a CI pipeline assumes. It can push to the two registries and read their scan
 # results, and it cannot do anything else. There is no stored key: only the identity below
 # can assume it, and each session lasts at most one hour.
@@ -12,7 +18,7 @@ data "aws_iam_policy_document" "ci_trust" {
 
     principals {
       type        = "AWS"
-      identifiers = [data.aws_iam_session_context.me.issuer_arn]
+      identifiers = [local.sso_admin_role_arn]
     }
   }
 }
