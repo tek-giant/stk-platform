@@ -1,0 +1,67 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    timeout(time: 30, unit: 'MINUTES')
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    SESSION = '/var/jenkins_home/aws-plan-session.env'
+    TF_IN_AUTOMATION = '1'
+    TF_INPUT = '0'
+  }
+
+  stages {
+    stage('Check the session') {
+      steps {
+        sh '''
+          if [ ! -f "$SESSION" ]; then
+            echo "No plan session file. Run: scripts/ci/jenkins-aws-session.sh plan" >&2
+            exit 1
+          fi
+          . "$SESSION"
+          aws sts get-caller-identity --query Arn --output text
+          terraform version | head -1
+        '''
+      }
+    }
+
+    stage('Plan dev') {
+      steps {
+        sh '''
+          . "$SESSION"
+          cd infra/envs/dev
+          terraform init -no-color
+          terraform validate -no-color
+          terraform plan -no-color -lock-timeout=60s -detailed-exitcode || [ $? -eq 2 ]
+        '''
+      }
+    }
+
+    stage('Plan dev-data') {
+      steps {
+        sh '''
+          . "$SESSION"
+          cd infra/envs/dev-data
+          terraform init -no-color
+          terraform validate -no-color
+          terraform plan -no-color -lock-timeout=60s -detailed-exitcode || [ $? -eq 2 ]
+        '''
+      }
+    }
+
+    stage('Validate dev-app and dev-web') {
+      steps {
+        sh '''
+          . "$SESSION"
+          for dir in dev-app dev-web; do
+            echo "== $dir: init and validate only. A plan needs the lower layers' state, which is empty while they are destroyed."
+            (cd "infra/envs/$dir" && terraform init -no-color && terraform validate -no-color)
+          done
+        '''
+      }
+    }
+  }
+}
