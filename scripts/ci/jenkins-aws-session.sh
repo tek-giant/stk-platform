@@ -9,9 +9,15 @@ ROLE_NAME="stk-ci-pipeline"
 CONTAINER="stk-jenkins"
 TARGET="/var/jenkins_home/aws-session.env"
 
+# "plan" gives the read-only plan role and its own file, so a plan build never holds push rights
+if [[ "${1:-}" == "plan" || "${2:-}" == "plan" ]]; then
+  ROLE_NAME="stk-ci-plan"
+  TARGET="/var/jenkins_home/aws-plan-session.env"
+fi
+
 if [[ "${1:-}" == "clear" ]]; then
-  docker exec "$CONTAINER" rm -f "$TARGET"
-  echo "Removed the session file from $CONTAINER"
+  docker exec "$CONTAINER" rm -f /var/jenkins_home/aws-session.env /var/jenkins_home/aws-plan-session.env
+  echo "Removed the session files from $CONTAINER"
   exit 0
 fi
 
