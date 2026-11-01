@@ -1,0 +1,59 @@
+---
+- name: Configure the web servers
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Refuse to run with the placeholder API address
+      ansible.builtin.assert:
+        that:
+          - api_upstream is match('^http://')
+          - "'CHANGE-ME' not in api_upstream"
+        fail_msg: "Pass the internal load balancer address: -e api_upstream=http://<dns-name>"
+
+    - name: Docker is installed
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+
+    - name: Docker is enabled and running
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Log in to the registry
+      ansible.builtin.shell: >
+        aws ecr get-login-password --region {{ aws_region }} |
+        docker login --username AWS --password-stdin {{ ecr_registry }}
+      changed_when: false
+      no_log: true
+
+    - name: Pull the web image
+      ansible.builtin.command: docker pull {{ web_image }}:{{ web_image_tag }}
+      register: pull_result
+      changed_when: "'Downloaded newer image' in pull_result.stdout"
+
+    - name: Check whether the web container already exists
+      ansible.builtin.command: docker inspect --format '{% raw %}{{.Config.Image}}{% endraw %}' {{ web_container_name }}
+      register: current_image
+      failed_when: false
+      changed_when: false
+
+    - name: Replace the container when the image or upstream differ
+      ansible.builtin.shell: |
+        docker rm -f {{ web_container_name }} || true
+        docker run -d --name {{ web_container_name }} --restart unless-stopped \
+          -p {{ web_listen_port }}:8080 \
+          -e API_UPSTREAM={{ api_upstream }} \
+          {{ web_image }}:{{ web_image_tag }}
+      when: current_image.rc != 0 or current_image.stdout != web_image ~ ':' ~ web_image_tag
+
+    - name: The site answers its health check
+      ansible.builtin.uri:
+        url: "http://localhost:{{ web_listen_port }}/healthz"
+        status_code: 200
+      register: health
+      retries: 12
+      delay: 5
+      until: health.status == 200

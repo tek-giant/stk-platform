@@ -1,0 +1,13 @@
+# Settings for the web servers (the "web" group from the inventory)
+aws_region: eu-west-2
+ecr_registry: 743978812281.dkr.ecr.eu-west-2.amazonaws.com
+web_image: "{{ ecr_registry }}/stk/web"
+web_image_tag: "0.1.1"
+
+# The internal load balancer in front of the API.
+# This changes every time the app tier is rebuilt, so pass it on the command line:
+#   ansible-playbook site.yml -e api_upstream=http://<internal-alb-dns-name>
+api_upstream: "http://CHANGE-ME"
+
+web_container_name: web
+web_listen_port: 8080
