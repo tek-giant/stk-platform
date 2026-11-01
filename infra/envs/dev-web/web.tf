@@ -68,6 +68,11 @@ resource "aws_lb" "public" {
   subnets                    = local.public_subnet_ids
   security_groups            = [aws_security_group.alb.id]
   drop_invalid_header_fields = true
+
+  access_logs {
+    bucket  = data.terraform_remote_state.network.outputs.lb_logs_bucket
+    enabled = true
+  }
 }
 
 resource "aws_lb_target_group" "web" {
