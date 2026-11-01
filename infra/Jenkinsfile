@@ -11,6 +11,7 @@ pipeline {
     SESSION = '/var/jenkins_home/aws-plan-session.env'
     TF_IN_AUTOMATION = '1'
     TF_INPUT = '0'
+    TF_VAR_alert_email = 'plan-only@example.invalid'
   }
 
   stages {
