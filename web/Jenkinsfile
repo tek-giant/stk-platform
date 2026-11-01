@@ -38,7 +38,9 @@ pipeline {
             echo "No AWS session file. Run scripts/ci/jenkins-aws-session.sh on the laptop." >&2
             exit 1
           fi
+          set +x
           . "$SESSION"
+          set -x
           aws sts get-caller-identity --query Arn --output text
           aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
           cd web
@@ -50,7 +52,9 @@ pipeline {
     stage('Check the scan') {
       steps {
         sh '''
+          set +x
           . "$SESSION"
+          set -x
           for i in $(seq 1 30); do
             status=$(aws ecr describe-image-scan-findings --repository-name "$REPO" --image-id imageTag="$TAG" --query imageScanStatus.status --output text 2>/dev/null || echo PENDING)
             [ "$status" = "COMPLETE" ] && break
