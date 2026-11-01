@@ -14,4 +14,13 @@ RUN apt-get update \
  && /tmp/aws/install \
  && rm -rf /tmp/aws /tmp/awscliv2.zip /var/lib/apt/lists/*
 
+ARG TERRAFORM_VERSION=1.14.6
+RUN arch="$(dpkg --print-architecture)" \
+ && curl --proto '=https' --tlsv1.2 -fsSL -o "/tmp/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" \
+ && curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/terraform.sums "https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS" \
+ && (cd /tmp && grep " terraform_${TERRAFORM_VERSION}_linux_${arch}.zip$" terraform.sums | sha256sum -c -) \
+ && unzip -q "/tmp/terraform_${TERRAFORM_VERSION}_linux_${arch}.zip" -d /usr/local/bin terraform \
+ && rm -f /tmp/terraform_*.zip /tmp/terraform.sums \
+ && terraform version
+
 USER jenkins
