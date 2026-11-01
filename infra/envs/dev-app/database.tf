@@ -1,10 +1,9 @@
 data "terraform_remote_state" "data" {
   backend = "s3"
   config = {
-    bucket  = "stk-tfstate-743978812281"
-    key     = "dev/data/terraform.tfstate"
-    region  = "eu-west-2"
-    profile = "stk-platform"
+    bucket = "stk-tfstate-743978812281"
+    key    = "dev/data/terraform.tfstate"
+    region = "eu-west-2"
   }
 }
 
