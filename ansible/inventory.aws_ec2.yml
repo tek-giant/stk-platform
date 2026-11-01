@@ -3,14 +3,11 @@ regions:
   - eu-west-2
 filters:
   instance-state-name: running
-  tag:Project: stk-platform
-  tag:Layer: web
+  tag:Name: stk-dev-web
 hostnames:
   - instance-id
-keyed_groups:
-  - key: tags.Layer
-    prefix: ""
-    separator: ""
+groups:
+  web: "'stk-dev-web' == ec2_tags.Name"
 compose:
   ansible_connection: '"amazon.aws.aws_ssm"'
   ansible_aws_ssm_region: '"eu-west-2"'
