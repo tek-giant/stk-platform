@@ -51,7 +51,13 @@ resource "aws_launch_template" "web" {
 
   tag_specifications {
     resource_type = "instance"
-    tags          = { Name = "${local.name}-web" }
+    tags = {
+      Name        = "${local.name}-web"
+      Project     = "stk-platform"
+      Environment = "dev"
+      Layer       = "web"
+      ManagedBy   = "terraform"
+    }
   }
 }
 
