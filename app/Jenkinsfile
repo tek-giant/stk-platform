@@ -1,0 +1,84 @@
+pipeline {
+  agent any
+
+  options {
+    timestamps()
+    timeout(time: 30, unit: 'MINUTES')
+    disableConcurrentBuilds()
+  }
+
+  environment {
+    AWS_REGION = 'eu-west-2'
+    ACCOUNT_ID = '743978812281'
+    REGISTRY   = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+    REPO       = 'stk/stock-api'
+    SESSION    = '/var/jenkins_home/aws-session.env'
+  }
+
+  stages {
+    stage('Build and test') {
+      steps {
+        dir('app') {
+          sh 'mvn -B -q clean verify'
+        }
+      }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: 'app/target/surefire-reports/*.xml'
+        }
+      }
+    }
+
+    stage('Build image') {
+      steps {
+        script {
+          env.TAG = "${env.GIT_COMMIT.take(7)}-${env.BUILD_NUMBER}"
+        }
+        dir('app') {
+          sh '''
+            docker build --platform linux/amd64 -t "$REGISTRY/$REPO:$TAG" .
+          '''
+        }
+      }
+    }
+
+    stage('Push image') {
+      steps {
+        sh '''
+          if [ ! -f "$SESSION" ]; then
+            echo "No AWS session file. Run scripts/ci/jenkins-aws-session.sh on the laptop." >&2
+            exit 1
+          fi
+          . "$SESSION"
+          aws sts get-caller-identity --query Arn --output text
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY"
+          docker push "$REGISTRY/$REPO:$TAG"
+        '''
+      }
+    }
+
+    stage('Check the scan') {
+      steps {
+        sh '''
+          . "$SESSION"
+          for i in $(seq 1 30); do
+            status=$(aws ecr describe-image-scan-findings --repository-name "$REPO" --image-id imageTag="$TAG" --query imageScanStatus.status --output text 2>/dev/null || echo PENDING)
+            [ "$status" = "COMPLETE" ] && break
+            sleep 10
+          done
+          if [ "$status" != "COMPLETE" ]; then
+            echo "Scan did not complete: $status" >&2
+            exit 1
+          fi
+          critical=$(aws ecr describe-image-scan-findings --repository-name "$REPO" --image-id imageTag="$TAG" --query "imageScanFindings.findingSeverityCounts.CRITICAL" --output text)
+          high=$(aws ecr describe-image-scan-findings --repository-name "$REPO" --image-id imageTag="$TAG" --query "imageScanFindings.findingSeverityCounts.HIGH" --output text)
+          echo "CRITICAL=${critical} HIGH=${high}"
+          if [ "$critical" != "None" ] || [ "$high" != "None" ]; then
+            echo "Critical or high findings: failing the build" >&2
+            exit 1
+          fi
+        '''
+      }
+    }
+  }
+}
