@@ -1,0 +1,32 @@
+pipeline {
+  agent any
+  options { timestamps(); timeout(time: 10, unit: 'MINUTES') }
+  environment { VAULT_FILE = '/var/jenkins_home/vault-token.env' }
+  stages {
+    stage('Read one secret from Vault') {
+      steps {
+        sh '''
+          set +x
+          [ -f "$VAULT_FILE" ] || { echo "No Vault token file. Run scripts/ci/jenkins-vault-token.sh" >&2; exit 1; }
+          . "$VAULT_FILE"
+          value="$(curl -sf -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/stk/data/ci/demo" | jq -r '.data.data.token')"
+          [ -n "$value" ] && [ "$value" != "null" ] || { echo "Could not read the secret" >&2; exit 1; }
+          echo "Read the secret: ${#value} characters (value not printed)"
+          unset value VAULT_TOKEN
+        '''
+      }
+    }
+    stage('Prove it cannot read anything else') {
+      steps {
+        sh '''
+          set +x
+          . "$VAULT_FILE"
+          code="$(curl -s -o /dev/null -w "%{http_code}" -H "X-Vault-Token: $VAULT_TOKEN" "$VAULT_ADDR/v1/stk/data/other")"
+          echo "Read of stk/other returned HTTP $code"
+          [ "$code" = "403" ] || { echo "Expected 403" >&2; exit 1; }
+          unset VAULT_TOKEN
+        '''
+      }
+    }
+  }
+}
