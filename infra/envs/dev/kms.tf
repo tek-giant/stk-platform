@@ -55,6 +55,22 @@ data "aws_iam_policy_document" "project_key" {
       values   = [data.aws_caller_identity.current.account_id]
     }
   }
+  statement {
+    sid       = "AllowCloudWatchLogsToUseTheKey"
+    actions   = ["kms:Encrypt*", "kms:Decrypt*", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:Describe*"]
+    resources = ["*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["logs.eu-west-2.amazonaws.com"]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "kms:EncryptionContext:aws:logs:arn"
+      values   = ["arn:aws:logs:eu-west-2:${data.aws_caller_identity.current.account_id}:log-group:*"]
+    }
+  }
 }
 
 resource "aws_kms_key" "project" {
