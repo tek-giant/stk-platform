@@ -1,0 +1,17 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - eu-west-2
+filters:
+  instance-state-name: running
+  tag:Project: stk-platform
+  tag:Layer: web
+hostnames:
+  - instance-id
+keyed_groups:
+  - key: tags.Layer
+    prefix: ""
+    separator: ""
+compose:
+  ansible_connection: '"amazon.aws.aws_ssm"'
+  ansible_aws_ssm_region: '"eu-west-2"'
+  ansible_aws_ssm_bucket_name: '"stk-ansible-transfer-743978812281"'
