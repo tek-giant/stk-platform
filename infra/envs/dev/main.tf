@@ -14,13 +14,11 @@ terraform {
     region         = "eu-west-2"
     dynamodb_table = "stk-tf-locks"
     encrypt        = true
-    profile        = "stk-platform"
   }
 }
 
 provider "aws" {
-  region  = "eu-west-2"
-  profile = "stk-platform"
+  region = "eu-west-2"
 
   default_tags {
     tags = {

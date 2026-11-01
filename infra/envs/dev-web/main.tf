@@ -14,13 +14,11 @@ terraform {
     region         = "eu-west-2"
     dynamodb_table = "stk-tf-locks"
     encrypt        = true
-    profile        = "stk-platform"
   }
 }
 
 provider "aws" {
-  region  = "eu-west-2"
-  profile = "stk-platform"
+  region = "eu-west-2"
 
   default_tags {
     tags = {
@@ -35,20 +33,18 @@ provider "aws" {
 data "terraform_remote_state" "network" {
   backend = "s3"
   config = {
-    bucket  = "stk-tfstate-743978812281"
-    key     = "dev/network/terraform.tfstate"
-    region  = "eu-west-2"
-    profile = "stk-platform"
+    bucket = "stk-tfstate-743978812281"
+    key    = "dev/network/terraform.tfstate"
+    region = "eu-west-2"
   }
 }
 
 data "terraform_remote_state" "app" {
   backend = "s3"
   config = {
-    bucket  = "stk-tfstate-743978812281"
-    key     = "dev/app/terraform.tfstate"
-    region  = "eu-west-2"
-    profile = "stk-platform"
+    bucket = "stk-tfstate-743978812281"
+    key    = "dev/app/terraform.tfstate"
+    region = "eu-west-2"
   }
 }
 
