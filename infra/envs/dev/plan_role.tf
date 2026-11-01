@@ -7,7 +7,7 @@ data "aws_iam_policy_document" "plan_trust" {
 
     principals {
       type        = "AWS"
-      identifiers = [data.aws_iam_session_context.me.issuer_arn]
+      identifiers = [local.sso_admin_role_arn]
     }
   }
 }
