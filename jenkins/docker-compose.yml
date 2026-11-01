@@ -1,0 +1,15 @@
+name: stk-jenkins
+services:
+  jenkins:
+    build: .
+    container_name: stk-jenkins
+    # Local laptop only: root plus the Docker socket is how the container builds images
+    user: root
+    ports:
+      - "8083:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  jenkins_home:
