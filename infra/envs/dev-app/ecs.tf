@@ -5,6 +5,7 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_cloudwatch_log_group" "app" {
   name              = "/ecs/${local.name}/stock-api"
   retention_in_days = 14
+  kms_key_id        = data.terraform_remote_state.network.outputs.kms_key_arn
 }
 
 resource "aws_ecs_task_definition" "stock_api" {
