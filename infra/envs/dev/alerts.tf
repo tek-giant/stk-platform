@@ -1,6 +1,7 @@
-variable "alert_email" {
-  description = "Where alarm emails go. Passed in with TF_VAR_alert_email and never committed."
-  type        = string
+# The alert address lives in Parameter Store (SecureString, project key), never in the repo.
+data "aws_ssm_parameter" "alert_email" {
+  name            = "/stk/dev/alert_email"
+  with_decryption = true
 }
 
 resource "aws_sns_topic" "alerts" {
@@ -35,7 +36,7 @@ resource "aws_sns_topic_policy" "alerts" {
 resource "aws_sns_topic_subscription" "email" {
   topic_arn = aws_sns_topic.alerts.arn
   protocol  = "email"
-  endpoint  = var.alert_email
+  endpoint  = data.aws_ssm_parameter.alert_email.value
 }
 
 output "alerts_topic_arn" {
