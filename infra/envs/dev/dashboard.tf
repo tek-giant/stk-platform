@@ -25,8 +25,8 @@ resource "aws_cloudwatch_dashboard" "stack" {
           view   = "timeSeries"
           period = 300
           metrics = [
-            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" LoadBalancer=\"app/stk-dev-public-alb*\"', 'Sum', 300)", id = "web_req" }],
-            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" LoadBalancer=\"app/stk-dev-public-alb*\"', 'Sum', 300)", id = "web_5xx" }]
+            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" stk-dev-public-alb', 'Sum', 300)", id = "web_req" }],
+            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" stk-dev-public-alb', 'Sum', 300)", id = "web_5xx" }]
           ]
         }
       },
@@ -42,8 +42,8 @@ resource "aws_cloudwatch_dashboard" "stack" {
           view   = "timeSeries"
           period = 300
           metrics = [
-            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" LoadBalancer=\"app/stk-dev-alb*\"', 'Sum', 300)", id = "app_req" }],
-            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" LoadBalancer=\"app/stk-dev-alb*\"', 'Sum', 300)", id = "app_5xx" }]
+            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"RequestCount\" stk-dev-alb', 'Sum', 300)", id = "app_req" }],
+            [{ expression = "SEARCH('{AWS/ApplicationELB,LoadBalancer} MetricName=\"HTTPCode_ELB_5XX_Count\" stk-dev-alb', 'Sum', 300)", id = "app_5xx" }]
           ]
         }
       },
