@@ -24,7 +24,10 @@ resource "aws_subnet" "public" {
   cidr_block        = cidrsubnet(var.cidr, 8, count.index)
   availability_zone = var.azs[count.index]
 
-  tags = { Name = "${var.name}-public-${count.index}" }
+  tags = {
+    Name                     = "${var.name}-public-${count.index}"
+    "kubernetes.io/role/elb" = "1"
+  }
 }
 
 resource "aws_subnet" "web" {
@@ -42,7 +45,10 @@ resource "aws_subnet" "app" {
   cidr_block        = cidrsubnet(var.cidr, 8, count.index + 20)
   availability_zone = var.azs[count.index]
 
-  tags = { Name = "${var.name}-app-${count.index}" }
+  tags = {
+    Name                              = "${var.name}-app-${count.index}"
+    "kubernetes.io/role/internal-elb" = "1"
+  }
 }
 
 resource "aws_subnet" "data" {
