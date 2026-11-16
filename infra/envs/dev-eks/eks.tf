@@ -53,6 +53,19 @@ module "eks" {
     kube-proxy             = { most_recent = true }
     coredns                = { most_recent = true }
     eks-pod-identity-agent = { most_recent = true } # lets pods use IAM roles (phase 3)
+    metrics-server         = { most_recent = true } # CPU/memory usage, needed for autoscaling
+  }
+
+    # Let the control plane reach metrics-server on the nodes (EKS add-on uses port 10251).
+  node_security_group_additional_rules = {
+    ingress_cluster_metrics_server = {
+      description                   = "Control plane to metrics-server"
+      protocol                      = "tcp"
+      from_port                     = 10251
+      to_port                       = 10251
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
   }
 
   # Worker nodes: a managed group of EC2 instances that AWS patches and replaces.
