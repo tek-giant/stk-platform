@@ -16,8 +16,22 @@ module "eks" {
   cluster_endpoint_public_access_cidrs = var.admin_cidrs
   cluster_endpoint_private_access      = true
 
-  # Whoever runs terraform apply (your SSO role) becomes a cluster admin.
-  enable_cluster_creator_admin_permissions = true
+  # Name the cluster admin explicitly: your SSO admin role.
+  # (Not "whoever runs terraform", which changes depending on which login you use.)
+  enable_cluster_creator_admin_permissions = false
+
+  access_entries = {
+    sso_admin = {
+      principal_arn = one(data.aws_iam_roles.sso_admin.arns)
+
+      policy_associations = {
+        admin = {
+          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          access_scope = { type = "cluster" }
+        }
+      }
+    }
+  }
 
   # Encrypt Kubernetes Secrets with the platform's existing KMS key.
   create_kms_key = false
@@ -57,4 +71,10 @@ module "eks" {
       }
     }
   }
+}
+
+# Find your SSO admin role's exact ARN, so it isn't hard-coded.
+data "aws_iam_roles" "sso_admin" {
+  name_regex  = "AWSReservedSSO_AdministratorAccess_.*"
+  path_prefix = "/aws-reserved/sso.amazonaws.com/"
 }
