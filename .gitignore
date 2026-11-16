@@ -33,3 +33,5 @@ __pycache__/
 
 # Maven
 target/
+.vagrant/
+*-console.log
